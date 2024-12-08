@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatGPT Chat Parser</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        h1 {
+            color: #00bcd4;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+        }
+
+        .file-upload {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            background-color: #1e1e1e;
+            border: 1px solid #00bcd4;
+            color: #ffffff;
+            cursor: pointer;
+        }
+
+        .output-container {
+            display: flex;
+            gap: 20px;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .output-box {
+            flex: 1;
+            max-height: 70vh;
+            overflow-y: auto;
+            background-color: #1e1e1e;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #00bcd4;
+        }
+
+        .output-box h2 {
+            margin-top: 0;
+            color: #00bcd4;
+        }
+
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .chatgpt {
+            background-color: #282828;
+            color: #00e676;
+        }
+
+        .user {
+            background-color: #3a3a3a;
+            color: #ff9800;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ChatGPT Chat Parser</h1>
+        <div class="file-upload">
+            <label for="fileInput">Upload your chat file:</label>
+            <input type="file" id="fileInput" accept=".txt">
+        </div>
+        <div class="output-container">
+            <div class="output-box" id="chatgptOutput">
+                <h2>ChatGPT Replies</h2>
+            </div>
+            <div class="output-box" id="userOutput">
+                <h2>Your Replies</h2>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const text = e.target.result;
+                    parseChat(text);
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        function parseChat(content) {
+            const chatGPTContainer = document.getElementById('chatgptOutput');
+            const userContainer = document.getElementById('userOutput');
+
+            // Clear previous content
+            chatGPTContainer.innerHTML = '<h2>ChatGPT Replies</h2>';
+            userContainer.innerHTML = '<h2>Your Replies</h2>';
+
+            const lines = content.split('\\n');
+
+            lines.forEach(line => {
+                if (line.startsWith('ChatGPT said:')) {
+                    const message = line.replace('ChatGPT said:', '').trim();
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message chatgpt';
+                    messageDiv.textContent = message;
+                    chatGPTContainer.appendChild(messageDiv);
+                } else if (line.startsWith('You said:')) {
+                    const message = line.replace('You said:', '').trim();
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message user';
+                    messageDiv.textContent = message;
+                    userContainer.appendChild(messageDiv);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
