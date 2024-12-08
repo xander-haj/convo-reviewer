@@ -27,27 +27,26 @@
             max-width: 1200px;
         }
 
-        .file-upload, .action-buttons {
+        .file-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
             margin-bottom: 20px;
-            text-align: center;
         }
 
-        input[type="file"] {
-            padding: 10px;
+        input[type="file"], button {
+            padding: 10px 20px;
             background-color: #1e1e1e;
             border: 1px solid #00bcd4;
+            border-radius: 5px;
             color: #ffffff;
+            font-weight: bold;
             cursor: pointer;
         }
 
         button {
-            padding: 10px 20px;
             background-color: #00bcd4;
-            border: none;
-            border-radius: 5px;
             color: #121212;
-            cursor: pointer;
-            font-weight: bold;
         }
 
         button:disabled {
@@ -71,12 +70,22 @@
 
         .output-box {
             flex: 1;
-            max-height: 70vh;
-            overflow-y: auto;
+            resize: both;
+            overflow: auto;
             background-color: #1e1e1e;
             padding: 15px;
             border-radius: 10px;
             border: 1px solid #00bcd4;
+        }
+
+        #chatgptOutput {
+            resize: horizontal;
+            direction: rtl;
+        }
+
+        #userOutput {
+            resize: horizontal;
+            direction: ltr;
         }
 
         .output-box h2 {
@@ -106,13 +115,11 @@
 <body>
     <div class="container">
         <h1>ChatGPT Chat Parser</h1>
-        <div class="file-upload">
-            <label for="fileInput">Upload your chat file:</label>
+        <div class="file-controls">
             <input type="file" id="fileInput" accept=".txt">
-        </div>
-        <div class="action-buttons">
             <button id="parseButton" disabled>Parse File</button>
         </div>
+        <button id="chatColorsButton">Chat Colors</button>
         <div id="progress">Processing: <span id="progressValue">0</span>%</div>
         <div class="output-container">
             <div class="output-box" id="chatgptOutput">
@@ -180,7 +187,6 @@
                     const messageDiv = document.createElement('div');
                     messageDiv.className = `message ${currentSpeaker}`;
                     messageDiv.textContent = `(${conversationIndex}) ${currentMessage.trim()}`;
-                    messageDiv.style.whiteSpace = 'pre-wrap';
                     if (currentSpeaker === 'user') {
                         userContainer.appendChild(messageDiv);
                     } else if (currentSpeaker === 'chatgpt') {
@@ -218,6 +224,23 @@
                     }
                 }, 10 * index); // Delay for visual effect
             });
+        });
+
+        document.getElementById('chatColorsButton').addEventListener('click', function() {
+            const chatGPTColor = prompt("Enter the ChatGPT reply background color (e.g., #282828):", "#282828");
+            const userColor = prompt("Enter the User reply background color (e.g., #3a3a3a):", "#3a3a3a");
+
+            if (chatGPTColor) {
+                document.querySelectorAll('.chatgpt').forEach(el => {
+                    el.style.backgroundColor = chatGPTColor;
+                });
+            }
+
+            if (userColor) {
+                document.querySelectorAll('.user').forEach(el => {
+                    el.style.backgroundColor = userColor;
+                });
+            }
         });
     </script>
 </body>
