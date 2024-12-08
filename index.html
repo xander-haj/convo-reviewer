@@ -46,6 +46,12 @@
             color: #00bcd4;
         }
 
+        #error {
+            display: none;
+            margin-top: 20px;
+            color: red;
+        }
+
         .output-container {
             display: flex;
             gap: 20px;
@@ -93,6 +99,7 @@
             <input type="file" id="fileInput" accept=".txt">
         </div>
         <div id="loading">Processing file... Please wait.</div>
+        <div id="error"></div>
         <div class="output-container">
             <div class="output-box" id="chatgptOutput">
                 <h2>ChatGPT Replies</h2>
@@ -107,16 +114,35 @@
         document.getElementById('fileInput').addEventListener('change', function(event) {
             const file = event.target.files[0];
             const loadingIndicator = document.getElementById('loading');
+            const errorIndicator = document.getElementById('error');
 
             if (file) {
                 loadingIndicator.style.display = 'block';
+                errorIndicator.style.display = 'none';
 
                 const reader = new FileReader();
+
                 reader.onload = function(e) {
-                    const text = e.target.result;
-                    parseChat(text);
+                    try {
+                        const text = e.target.result;
+                        console.log("File content read successfully.");
+                        parseChat(text);
+                    } catch (err) {
+                        console.error("Error while processing file:", err);
+                        errorIndicator.textContent = "An error occurred while processing the file. Please check the console for details.";
+                        errorIndicator.style.display = 'block';
+                    } finally {
+                        loadingIndicator.style.display = 'none';
+                    }
+                };
+
+                reader.onerror = function(err) {
+                    console.error("File reading failed:", err);
+                    errorIndicator.textContent = "File reading failed. Please try again.";
+                    errorIndicator.style.display = 'block';
                     loadingIndicator.style.display = 'none';
                 };
+
                 reader.readAsText(file);
             }
         });
@@ -131,6 +157,11 @@
 
             const lines = content.split('\n');
 
+            console.log("Number of lines in file:", lines.length);
+
+            let hasChatGPTMessages = false;
+            let hasUserMessages = false;
+
             lines.forEach(line => {
                 if (line.startsWith('ChatGPT said:')) {
                     const message = line.replace('ChatGPT said:', '').trim();
@@ -138,14 +169,21 @@
                     messageDiv.className = 'message chatgpt';
                     messageDiv.textContent = message;
                     chatGPTContainer.appendChild(messageDiv);
+                    hasChatGPTMessages = true;
                 } else if (line.startsWith('You said:')) {
                     const message = line.replace('You said:', '').trim();
                     const messageDiv = document.createElement('div');
                     messageDiv.className = 'message user';
                     messageDiv.textContent = message;
                     userContainer.appendChild(messageDiv);
+                    hasUserMessages = true;
                 }
             });
+
+            if (!hasChatGPTMessages && !hasUserMessages) {
+                console.warn("No valid messages found in the file.");
+                alert("No valid messages found in the uploaded file.");
+            }
         }
     </script>
 </body>
