@@ -27,7 +27,7 @@
             max-width: 1200px;
         }
 
-        .file-upload {
+        .file-upload, .action-buttons {
             margin-bottom: 20px;
             text-align: center;
         }
@@ -40,16 +40,26 @@
             cursor: pointer;
         }
 
-        #loading {
+        button {
+            padding: 10px 20px;
+            background-color: #00bcd4;
+            border: none;
+            border-radius: 5px;
+            color: #121212;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:disabled {
+            background-color: #3a3a3a;
+            color: #777;
+            cursor: not-allowed;
+        }
+
+        #progress {
             display: none;
             margin-top: 20px;
             color: #00bcd4;
-        }
-
-        #error {
-            display: none;
-            margin-top: 20px;
-            color: red;
         }
 
         .output-container {
@@ -98,8 +108,10 @@
             <label for="fileInput">Upload your chat file:</label>
             <input type="file" id="fileInput" accept=".txt">
         </div>
-        <div id="loading">Processing file... Please wait.</div>
-        <div id="error"></div>
+        <div class="action-buttons">
+            <button id="parseButton" disabled>Parse File</button>
+        </div>
+        <div id="progress">Processing: <span id="progressValue">0</span>%</div>
         <div class="output-container">
             <div class="output-box" id="chatgptOutput">
                 <h2>ChatGPT Replies</h2>
@@ -111,43 +123,44 @@
     </div>
 
     <script>
+        let uploadedFileContent = "";
+
         document.getElementById('fileInput').addEventListener('change', function(event) {
             const file = event.target.files[0];
-            const loadingIndicator = document.getElementById('loading');
-            const errorIndicator = document.getElementById('error');
+            const parseButton = document.getElementById('parseButton');
 
             if (file) {
-                loadingIndicator.style.display = 'block';
-                errorIndicator.style.display = 'none';
-
                 const reader = new FileReader();
 
                 reader.onload = function(e) {
-                    try {
-                        const text = e.target.result;
-                        console.log("File content read successfully.");
-                        parseChat(text);
-                    } catch (err) {
-                        console.error("Error while processing file:", err);
-                        errorIndicator.textContent = "An error occurred while processing the file. Please check the console for details.";
-                        errorIndicator.style.display = 'block';
-                    } finally {
-                        loadingIndicator.style.display = 'none';
-                    }
+                    uploadedFileContent = e.target.result;
+                    console.log("File content loaded.");
+                    parseButton.disabled = false;
                 };
 
                 reader.onerror = function(err) {
                     console.error("File reading failed:", err);
-                    errorIndicator.textContent = "File reading failed. Please try again.";
-                    errorIndicator.style.display = 'block';
-                    loadingIndicator.style.display = 'none';
+                    alert("Failed to read file. Please try again.");
+                    parseButton.disabled = true;
                 };
 
                 reader.readAsText(file);
             }
         });
 
-        function parseChat(content) {
+        document.getElementById('parseButton').addEventListener('click', function() {
+            if (!uploadedFileContent) {
+                alert("No file content loaded.");
+                return;
+            }
+
+            const progressBar = document.getElementById('progress');
+            const progressValue = document.getElementById('progressValue');
+            progressBar.style.display = 'block';
+
+            const lines = uploadedFileContent.split('\n');
+            const totalLines = lines.length;
+
             const chatGPTContainer = document.getElementById('chatgptOutput');
             const userContainer = document.getElementById('userOutput');
 
@@ -155,36 +168,33 @@
             chatGPTContainer.innerHTML = '<h2>ChatGPT Replies</h2>';
             userContainer.innerHTML = '<h2>Your Replies</h2>';
 
-            const lines = content.split('\n');
+            lines.forEach((line, index) => {
+                setTimeout(() => {
+                    if (line.startsWith('ChatGPT said:')) {
+                        const message = line.replace('ChatGPT said:', '').trim();
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = 'message chatgpt';
+                        messageDiv.textContent = message;
+                        chatGPTContainer.appendChild(messageDiv);
+                    } else if (line.startsWith('You said:')) {
+                        const message = line.replace('You said:', '').trim();
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = 'message user';
+                        messageDiv.textContent = message;
+                        userContainer.appendChild(messageDiv);
+                    }
 
-            console.log("Number of lines in file:", lines.length);
+                    // Update progress
+                    const percentage = Math.floor(((index + 1) / totalLines) * 100);
+                    progressValue.textContent = percentage;
 
-            let hasChatGPTMessages = false;
-            let hasUserMessages = false;
-
-            lines.forEach(line => {
-                if (line.startsWith('ChatGPT said:')) {
-                    const message = line.replace('ChatGPT said:', '').trim();
-                    const messageDiv = document.createElement('div');
-                    messageDiv.className = 'message chatgpt';
-                    messageDiv.textContent = message;
-                    chatGPTContainer.appendChild(messageDiv);
-                    hasChatGPTMessages = true;
-                } else if (line.startsWith('You said:')) {
-                    const message = line.replace('You said:', '').trim();
-                    const messageDiv = document.createElement('div');
-                    messageDiv.className = 'message user';
-                    messageDiv.textContent = message;
-                    userContainer.appendChild(messageDiv);
-                    hasUserMessages = true;
-                }
+                    // Hide progress bar after completion
+                    if (index === totalLines - 1) {
+                        progressBar.style.display = 'none';
+                    }
+                }, 10 * index); // Delay for visual effect
             });
-
-            if (!hasChatGPTMessages && !hasUserMessages) {
-                console.warn("No valid messages found in the file.");
-                alert("No valid messages found in the uploaded file.");
-            }
-        }
+        });
     </script>
 </body>
 </html>
