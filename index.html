@@ -168,41 +168,51 @@
             chatGPTContainer.innerHTML = '<h2>ChatGPT Replies</h2>';
             userContainer.innerHTML = '<h2>Your Replies</h2>';
 
-            let chatGPTCount = 0;
-            let userCount = 0;
+            let conversationIndex = 1;
             let currentSpeaker = null;
+            let currentMessage = '';
+            let messageBlockStarted = false;
+
+            const flushMessage = () => {
+                if (currentSpeaker === 'user') {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message user';
+                    messageDiv.textContent = `(${conversationIndex}) ${currentMessage.trim()}`;
+                    userContainer.appendChild(messageDiv);
+                } else if (currentSpeaker === 'chatgpt') {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message chatgpt';
+                    messageDiv.textContent = `(${conversationIndex}) ${currentMessage.trim()}`;
+                    chatGPTContainer.appendChild(messageDiv);
+                }
+                currentMessage = '';
+            };
 
             lines.forEach((line, index) => {
                 setTimeout(() => {
+                    line = line.trim();
                     if (line.startsWith('You said:')) {
+                        if (messageBlockStarted) flushMessage();
                         currentSpeaker = 'user';
+                        messageBlockStarted = true;
+                        conversationIndex++;
                     } else if (line.startsWith('ChatGPT said:')) {
+                        if (messageBlockStarted) flushMessage();
                         currentSpeaker = 'chatgpt';
-                    } else if (currentSpeaker) {
-                        const messageDiv = document.createElement('div');
-                        messageDiv.className = `message ${currentSpeaker}`;
-                        messageDiv.textContent = line.trim();
-
-                        if (currentSpeaker === 'user') {
-                            userContainer.appendChild(messageDiv);
-                            userCount++;
-                        } else if (currentSpeaker === 'chatgpt') {
-                            chatGPTContainer.appendChild(messageDiv);
-                            chatGPTCount++;
-                        }
+                        messageBlockStarted = true;
+                    } else if (messageBlockStarted) {
+                        currentMessage += (currentMessage ? '\n' : '') + line;
                     }
 
                     // Update progress
                     const percentage = Math.floor(((index + 1) / totalLines) * 100);
                     progressValue.textContent = percentage;
 
-                    // Hide progress bar after completion
-                    if (index === totalLines - 1) {
+                    // Final flush at the end
+                    if (index === totalLines - 1 && messageBlockStarted) {
+                        flushMessage();
                         progressBar.style.display = 'none';
-                        console.log(`Parsing complete: ${chatGPTCount} ChatGPT messages and ${userCount} user messages processed.`);
-                        if (chatGPTCount === 0 && userCount === 0) {
-                            alert("No valid messages found. Check the file format.");
-                        }
+                        console.log('Parsing complete.');
                     }
                 }, 10 * index); // Delay for visual effect
             });
