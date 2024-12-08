@@ -170,26 +170,25 @@
 
             let chatGPTCount = 0;
             let userCount = 0;
+            let currentSpeaker = null;
 
             lines.forEach((line, index) => {
                 setTimeout(() => {
-                    if (line.startsWith('ChatGPT said:')) {
-                        const message = line.replace('ChatGPT said:', '').trim();
-                        if (message) {
-                            const messageDiv = document.createElement('div');
-                            messageDiv.className = 'message chatgpt';
-                            messageDiv.textContent = message;
-                            chatGPTContainer.appendChild(messageDiv);
-                            chatGPTCount++;
-                        }
-                    } else if (line.startsWith('You said:')) {
-                        const message = line.replace('You said:', '').trim();
-                        if (message) {
-                            const messageDiv = document.createElement('div');
-                            messageDiv.className = 'message user';
-                            messageDiv.textContent = message;
+                    if (line.startsWith('You said:')) {
+                        currentSpeaker = 'user';
+                    } else if (line.startsWith('ChatGPT said:')) {
+                        currentSpeaker = 'chatgpt';
+                    } else if (currentSpeaker) {
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = `message ${currentSpeaker}`;
+                        messageDiv.textContent = line.trim();
+
+                        if (currentSpeaker === 'user') {
                             userContainer.appendChild(messageDiv);
                             userCount++;
+                        } else if (currentSpeaker === 'chatgpt') {
+                            chatGPTContainer.appendChild(messageDiv);
+                            chatGPTCount++;
                         }
                     }
 
