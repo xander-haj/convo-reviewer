@@ -232,19 +232,24 @@
         });
 
         document.getElementById('chatColorsButton').addEventListener('click', function() {
-            const chatGPTColor = prompt("Enter the ChatGPT reply background color (e.g., #282828):", "#282828");
-            const userColor = prompt("Enter the User reply background color (e.g., #3a3a3a):", "#3a3a3a");
+            const choice = prompt("Enter 'ChatGPT' to change ChatGPT text color or 'You' to change User text color:");
 
-            if (chatGPTColor) {
-                document.querySelectorAll('.chatgpt').forEach(el => {
-                    el.style.backgroundColor = chatGPTColor;
-                });
-            }
-
-            if (userColor) {
-                document.querySelectorAll('.user').forEach(el => {
-                    el.style.backgroundColor = userColor;
-                });
+            if (choice === 'ChatGPT') {
+                const chatGPTColor = prompt("Enter the ChatGPT text color (e.g., #00e676):", "#00e676");
+                if (chatGPTColor) {
+                    document.querySelectorAll('.chatgpt').forEach(el => {
+                        el.style.color = chatGPTColor;
+                    });
+                }
+            } else if (choice === 'You') {
+                const userColor = prompt("Enter the User text color (e.g., #ff9800):", "#ff9800");
+                if (userColor) {
+                    document.querySelectorAll('.user').forEach(el => {
+                        el.style.color = userColor;
+                    });
+                }
+            } else {
+                alert("Invalid choice. Please enter 'ChatGPT' or 'You'.");
             }
         });
     </script>
