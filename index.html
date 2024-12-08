@@ -88,6 +88,8 @@
             margin: 10px 0;
             padding: 10px;
             border-radius: 8px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
         .chatgpt {
@@ -174,16 +176,16 @@
             let messageBlockStarted = false;
 
             const flushMessage = () => {
-                if (currentSpeaker === 'user') {
+                if (currentMessage.trim()) {
                     const messageDiv = document.createElement('div');
-                    messageDiv.className = 'message user';
+                    messageDiv.className = `message ${currentSpeaker}`;
                     messageDiv.textContent = `(${conversationIndex}) ${currentMessage.trim()}`;
-                    userContainer.appendChild(messageDiv);
-                } else if (currentSpeaker === 'chatgpt') {
-                    const messageDiv = document.createElement('div');
-                    messageDiv.className = 'message chatgpt';
-                    messageDiv.textContent = `(${conversationIndex}) ${currentMessage.trim()}`;
-                    chatGPTContainer.appendChild(messageDiv);
+                    messageDiv.style.whiteSpace = 'pre-wrap';
+                    if (currentSpeaker === 'user') {
+                        userContainer.appendChild(messageDiv);
+                    } else if (currentSpeaker === 'chatgpt') {
+                        chatGPTContainer.appendChild(messageDiv);
+                    }
                 }
                 currentMessage = '';
             };
