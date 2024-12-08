@@ -40,6 +40,12 @@
             cursor: pointer;
         }
 
+        #loading {
+            display: none;
+            margin-top: 20px;
+            color: #00bcd4;
+        }
+
         .output-container {
             display: flex;
             gap: 20px;
@@ -86,6 +92,7 @@
             <label for="fileInput">Upload your chat file:</label>
             <input type="file" id="fileInput" accept=".txt">
         </div>
+        <div id="loading">Processing file... Please wait.</div>
         <div class="output-container">
             <div class="output-box" id="chatgptOutput">
                 <h2>ChatGPT Replies</h2>
@@ -99,11 +106,16 @@
     <script>
         document.getElementById('fileInput').addEventListener('change', function(event) {
             const file = event.target.files[0];
+            const loadingIndicator = document.getElementById('loading');
+
             if (file) {
+                loadingIndicator.style.display = 'block';
+
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const text = e.target.result;
                     parseChat(text);
+                    loadingIndicator.style.display = 'none';
                 };
                 reader.readAsText(file);
             }
@@ -117,7 +129,7 @@
             chatGPTContainer.innerHTML = '<h2>ChatGPT Replies</h2>';
             userContainer.innerHTML = '<h2>Your Replies</h2>';
 
-            const lines = content.split('\\n');
+            const lines = content.split('\n');
 
             lines.forEach(line => {
                 if (line.startsWith('ChatGPT said:')) {
