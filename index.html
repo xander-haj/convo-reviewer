@@ -134,7 +134,7 @@
 
                 reader.onload = function(e) {
                     uploadedFileContent = e.target.result;
-                    console.log("File content loaded.");
+                    console.log("File content loaded successfully.");
                     parseButton.disabled = false;
                 };
 
@@ -168,20 +168,29 @@
             chatGPTContainer.innerHTML = '<h2>ChatGPT Replies</h2>';
             userContainer.innerHTML = '<h2>Your Replies</h2>';
 
+            let chatGPTCount = 0;
+            let userCount = 0;
+
             lines.forEach((line, index) => {
                 setTimeout(() => {
                     if (line.startsWith('ChatGPT said:')) {
                         const message = line.replace('ChatGPT said:', '').trim();
-                        const messageDiv = document.createElement('div');
-                        messageDiv.className = 'message chatgpt';
-                        messageDiv.textContent = message;
-                        chatGPTContainer.appendChild(messageDiv);
+                        if (message) {
+                            const messageDiv = document.createElement('div');
+                            messageDiv.className = 'message chatgpt';
+                            messageDiv.textContent = message;
+                            chatGPTContainer.appendChild(messageDiv);
+                            chatGPTCount++;
+                        }
                     } else if (line.startsWith('You said:')) {
                         const message = line.replace('You said:', '').trim();
-                        const messageDiv = document.createElement('div');
-                        messageDiv.className = 'message user';
-                        messageDiv.textContent = message;
-                        userContainer.appendChild(messageDiv);
+                        if (message) {
+                            const messageDiv = document.createElement('div');
+                            messageDiv.className = 'message user';
+                            messageDiv.textContent = message;
+                            userContainer.appendChild(messageDiv);
+                            userCount++;
+                        }
                     }
 
                     // Update progress
@@ -191,6 +200,10 @@
                     // Hide progress bar after completion
                     if (index === totalLines - 1) {
                         progressBar.style.display = 'none';
+                        console.log(`Parsing complete: ${chatGPTCount} ChatGPT messages and ${userCount} user messages processed.`);
+                        if (chatGPTCount === 0 && userCount === 0) {
+                            alert("No valid messages found. Check the file format.");
+                        }
                     }
                 }, 10 * index); // Delay for visual effect
             });
