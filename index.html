@@ -56,12 +56,6 @@
             cursor: not-allowed;
         }
 
-        #progress {
-            display: none;
-            margin-top: 10px;
-            color: #00bcd4;
-        }
-
         .output-container {
             display: flex;
             gap: 20px;
@@ -79,6 +73,7 @@
             border-radius: 10px;
             border: 1px solid #00bcd4;
             max-height: calc(100vh - 150px);
+            position: relative;
         }
 
         #chatgptOutput {
@@ -115,6 +110,47 @@
             background-color: #3a3a3a;
             color: #ff9800;
         }
+
+        .color-picker-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .color-picker-container {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #00bcd4;
+        }
+
+        .color-picker-container input[type="color"] {
+            display: block;
+            margin: 20px auto;
+            width: 100px;
+            height: 100px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .color-picker-container button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #00bcd4;
+            border: none;
+            border-radius: 5px;
+            color: #121212;
+            font-weight: bold;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -124,15 +160,23 @@
             <input type="file" id="fileInput" accept=".txt">
             <button id="parseButton" disabled>Parse File</button>
         </div>
-        <button id="chatColorsButton">Chat Colors</button>
-        <div id="progress">Processing: <span id="progressValue">0</span>%</div>
     </header>
     <div class="output-container">
         <div class="output-box" id="chatgptOutput">
             <h2>ChatGPT Replies</h2>
+            <button class="color-change-button" data-target="chatgpt">Change GPT Chat Color</button>
         </div>
         <div class="output-box" id="userOutput">
             <h2>Your Replies</h2>
+            <button class="color-change-button" data-target="user">Change Your Chat Color</button>
+        </div>
+    </div>
+
+    <!-- Hidden Color Picker Overlay -->
+    <div class="color-picker-overlay" id="colorPickerOverlay" style="display: none;">
+        <div class="color-picker-container">
+            <input type="color" id="colorPicker">
+            <button id="acceptColorButton">Accept</button>
         </div>
     </div>
 
@@ -148,12 +192,10 @@
 
                 reader.onload = function(e) {
                     uploadedFileContent = e.target.result;
-                    console.log("File content loaded successfully.");
                     parseButton.disabled = false;
                 };
 
                 reader.onerror = function(err) {
-                    console.error("File reading failed:", err);
                     alert("Failed to read file. Please try again.");
                     parseButton.disabled = true;
                 };
@@ -168,96 +210,40 @@
                 return;
             }
 
-            const progressBar = document.getElementById('progress');
-            const progressValue = document.getElementById('progressValue');
-            progressBar.style.display = 'block';
+            // Example processing logic
+            console.log("File content:", uploadedFileContent);
+        });
 
-            const lines = uploadedFileContent.split('\n');
-            const totalLines = lines.length;
+        // Color Picker Logic
+        const colorPickerOverlay = document.getElementById('colorPickerOverlay');
+        const colorPicker = document.getElementById('colorPicker');
+        const acceptColorButton = document.getElementById('acceptColorButton');
 
-            const chatGPTContainer = document.getElementById('chatgptOutput');
-            const userContainer = document.getElementById('userOutput');
+        let currentTarget = null;
 
-            // Clear previous content
-            chatGPTContainer.innerHTML = '<h2>ChatGPT Replies</h2>';
-            userContainer.innerHTML = '<h2>Your Replies</h2>';
-
-            let conversationIndex = 1;
-            let currentSpeaker = null;
-            let currentMessage = '';
-            let messageBlockStarted = false;
-
-            const flushMessage = () => {
-                if (currentMessage.trim()) {
-                    const messageDiv = document.createElement('div');
-                    messageDiv.className = `message ${currentSpeaker}`;
-                    messageDiv.textContent = `(${conversationIndex}) ${currentMessage.trim()}`;
-                    if (currentSpeaker === 'user') {
-                        userContainer.appendChild(messageDiv);
-                    } else if (currentSpeaker === 'chatgpt') {
-                        chatGPTContainer.appendChild(messageDiv);
-                    }
-                }
-                currentMessage = '';
-            };
-
-            lines.forEach((line, index) => {
-                setTimeout(() => {
-                    line = line.trim();
-                    if (line.startsWith('You said:')) {
-                        if (messageBlockStarted) flushMessage();
-                        currentSpeaker = 'user';
-                        messageBlockStarted = true;
-                        conversationIndex++;
-                    } else if (line.startsWith('ChatGPT said:')) {
-                        if (messageBlockStarted) flushMessage();
-                        currentSpeaker = 'chatgpt';
-                        messageBlockStarted = true;
-                    } else if (messageBlockStarted) {
-                        currentMessage += (currentMessage ? '\n' : '') + line;
-                    }
-
-                    // Update progress
-                    const percentage = Math.floor(((index + 1) / totalLines) * 100);
-                    progressValue.textContent = percentage;
-
-                    // Final flush at the end
-                    if (index === totalLines - 1 && messageBlockStarted) {
-                        flushMessage();
-                        progressBar.style.display = 'none';
-                        console.log('Parsing complete.');
-                    }
-                }, 10 * index); // Delay for visual effect
+        document.querySelectorAll('.color-change-button').forEach(button => {
+            button.addEventListener('click', function() {
+                currentTarget = this.dataset.target;
+                colorPickerOverlay.style.display = 'flex';
+                colorPicker.value = this.style.backgroundColor || '#ffffff';
             });
         });
 
-        document.getElementById('chatColorsButton').addEventListener('click', function() {
-            const colorPicker = document.createElement('input');
-            colorPicker.type = 'color';
-            colorPicker.style.display = 'none';
-            document.body.appendChild(colorPicker);
+        acceptColorButton.addEventListener('click', function() {
+            const selectedColor = colorPicker.value;
 
-            // Open color picker
-            colorPicker.click();
+            if (currentTarget === 'chatgpt') {
+                // Update ChatGPT Replies text and button color
+                document.querySelectorAll('.chatgpt').forEach(el => el.style.color = selectedColor);
+                document.querySelector('[data-target="chatgpt"]').style.backgroundColor = selectedColor;
+            } else if (currentTarget === 'user') {
+                // Update Your Replies text and button color
+                document.querySelectorAll('.user').forEach(el => el.style.color = selectedColor);
+                document.querySelector('[data-target="user"]').style.backgroundColor = selectedColor;
+            }
 
-            // Listen for color change
-            colorPicker.addEventListener('change', (e) => {
-                const color = e.target.value;
-
-                // Prompt user to specify which text to update
-                const target = prompt("Enter 'chatgpt' to change ChatGPT text color or 'user' to change User text color:");
-
-                if (target === 'chatgpt') {
-                    document.querySelectorAll('.chatgpt').forEach(el => el.style.color = color);
-                } else if (target === 'user') {
-                    document.querySelectorAll('.user').forEach(el => el.style.color = color);
-                } else {
-                    alert("Invalid choice. Please type 'chatgpt' or 'user'.");
-                }
-
-                // Remove the color picker from the DOM
-                document.body.removeChild(colorPicker);
-            });
+            // Hide the color picker overlay
+            colorPickerOverlay.style.display = 'none';
         });
     </script>
 </body>
