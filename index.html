@@ -137,13 +137,103 @@
     </div>
 
     <script>
+        let uploadedFileContent = "";
+
+        // File input change event
+        document.getElementById('fileInput').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            const parseButton = document.getElementById('parseButton');
+
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    uploadedFileContent = e.target.result;
+                    console.log("File content loaded successfully.");
+                    parseButton.disabled = false; // Enable parse button after successful load
+                };
+
+                reader.onerror = function (err) {
+                    console.error("File reading failed:", err);
+                    alert("Failed to read file. Please try again.");
+                    parseButton.disabled = true; // Disable parse button if error occurs
+                };
+
+                reader.readAsText(file);
+            }
+        });
+
+        // Parse button click event
+        document.getElementById('parseButton').addEventListener('click', function () {
+            if (!uploadedFileContent) {
+                alert("No file content loaded.");
+                return;
+            }
+
+            const progressBar = document.getElementById('progress');
+            const progressValue = document.getElementById('progressValue');
+            progressBar.style.display = 'block';
+
+            const lines = uploadedFileContent.split('\n');
+            const totalLines = lines.length;
+
+            const chatGPTContainer = document.getElementById('chatgptOutput');
+            const userContainer = document.getElementById('userOutput');
+
+            // Clear previous content
+            chatGPTContainer.innerHTML = '<h2>ChatGPT Replies</h2>';
+            userContainer.innerHTML = '<h2>Your Replies</h2>';
+
+            let conversationIndex = 1;
+            let currentSpeaker = null;
+            let currentMessage = '';
+
+            const flushMessage = () => {
+                if (currentMessage.trim()) {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = `message ${currentSpeaker}`;
+                    messageDiv.textContent = `(${conversationIndex}) ${currentMessage.trim()}`;
+                    if (currentSpeaker === 'user') {
+                        userContainer.appendChild(messageDiv);
+                    } else if (currentSpeaker === 'chatgpt') {
+                        chatGPTContainer.appendChild(messageDiv);
+                    }
+                }
+                currentMessage = '';
+            };
+
+            lines.forEach((line, index) => {
+                line = line.trim();
+                if (line.startsWith('You said:')) {
+                    if (currentMessage) flushMessage();
+                    currentSpeaker = 'user';
+                    conversationIndex++;
+                } else if (line.startsWith('ChatGPT said:')) {
+                    if (currentMessage) flushMessage();
+                    currentSpeaker = 'chatgpt';
+                } else if (currentSpeaker) {
+                    currentMessage += (currentMessage ? '\n' : '') + line;
+                }
+
+                // Update progress
+                const percentage = Math.floor(((index + 1) / totalLines) * 100);
+                progressValue.textContent = percentage;
+
+                if (index === totalLines - 1 && currentMessage) {
+                    flushMessage();
+                    progressBar.style.display = 'none';
+                    console.log("Parsing complete.");
+                }
+            });
+        });
+
+        // Chat Colors functionality
         document.getElementById('chatColorsButton').addEventListener('click', function () {
             const colorPicker = document.createElement('input');
             colorPicker.type = 'color';
             colorPicker.style.display = 'none';
             document.body.appendChild(colorPicker);
 
-            // Open color picker
             colorPicker.click();
 
             colorPicker.addEventListener('input', (e) => {
@@ -155,7 +245,6 @@
                 document.querySelectorAll(targetClass).forEach(el => el.style.color = color);
             });
 
-            // Remove color picker after selection
             colorPicker.addEventListener('change', () => document.body.removeChild(colorPicker));
         });
     </script>
