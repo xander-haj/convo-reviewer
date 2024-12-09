@@ -28,14 +28,14 @@
             color: #00bcd4;
         }
 
-        .file-controls {
+        .file-controls, .link-controls {
             display: flex;
             gap: 10px;
             justify-content: center;
             margin: 10px 0;
         }
 
-        input[type="file"], button {
+        input[type="file"], input[type="url"], button {
             padding: 10px 20px;
             background-color: #1e1e1e;
             border: 1px solid #00bcd4;
@@ -119,47 +119,6 @@
             background-color: #3a3a3a;
             color: #ff9800;
         }
-
-        .color-picker-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .color-picker-container {
-            background: #1e1e1e;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            border: 1px solid #00bcd4;
-        }
-
-        .color-picker-container input[type="color"] {
-            display: block;
-            margin: 20px auto;
-            width: 100px;
-            height: 100px;
-            border: none;
-            cursor: pointer;
-        }
-
-        .color-picker-container button {
-            margin-top: 10px;
-            padding: 10px 20px;
-            background-color: #00bcd4;
-            border: none;
-            border-radius: 5px;
-            color: #121212;
-            font-weight: bold;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
@@ -168,6 +127,10 @@
         <div class="file-controls">
             <input type="file" id="fileInput" accept=".txt">
             <button id="parseButton" disabled>Parse File</button>
+        </div>
+        <div class="link-controls">
+            <input type="url" id="chatLinkInput" placeholder="Paste ChatGPT Link Here">
+            <button id="fetchChatButton">Fetch Chat</button>
         </div>
         <div id="progress">Processing: <span id="progressValue">0</span>%</div>
     </header>
@@ -183,14 +146,6 @@
                 Your Replies
                 <button class="color-change-button" data-target="user">Change Your Chat Color</button>
             </h2>
-        </div>
-    </div>
-
-    <!-- Hidden Color Picker Overlay -->
-    <div class="color-picker-overlay" id="colorPickerOverlay" style="display: none;">
-        <div class="color-picker-container">
-            <input type="color" id="colorPicker">
-            <button id="acceptColorButton">Accept</button>
         </div>
     </div>
 
@@ -226,6 +181,30 @@
                 return;
             }
 
+            processChatContent(uploadedFileContent);
+        });
+
+        // Handle fetching a chat from a provided URL
+        document.getElementById('fetchChatButton').addEventListener('click', async function() {
+            const chatLinkInput = document.getElementById('chatLinkInput').value;
+            if (!chatLinkInput) {
+                alert("Please provide a valid ChatGPT chat link.");
+                return;
+            }
+
+            try {
+                const response = await fetch(chatLinkInput);
+                if (!response.ok) throw new Error("Failed to fetch chat data.");
+
+                const chatData = await response.text(); // Adjust depending on the response type
+                processChatContent(chatData);
+            } catch (error) {
+                alert(`Error fetching chat: ${error.message}`);
+            }
+        });
+
+        // Function to process chat content and display it
+        function processChatContent(content) {
             const chatGPTContainer = document.getElementById('chatgptOutput');
             const userContainer = document.getElementById('userOutput');
             const progressBar = document.getElementById('progress');
@@ -244,7 +223,7 @@
                 </h2>`;
             progressBar.style.display = 'block';
 
-            const lines = uploadedFileContent.split('\n');
+            const lines = content.split('\n');
             const totalLines = lines.length;
 
             let conversationIndex = 1;
@@ -290,35 +269,7 @@
                     }
                 }, 10 * index); // Delay for visual effect
             });
-        });
-
-        // Color picker logic
-        const colorPickerOverlay = document.getElementById('colorPickerOverlay');
-        const colorPicker = document.getElementById('colorPicker');
-        const acceptColorButton = document.getElementById('acceptColorButton');
-        let currentTarget = null;
-
-        document.body.addEventListener('click', function(event) {
-            const button = event.target.closest('.color-change-button');
-            if (button) {
-                currentTarget = button.dataset.target;
-                colorPickerOverlay.style.display = 'flex';
-            }
-        });
-
-        acceptColorButton.addEventListener('click', function() {
-            const selectedColor = colorPicker.value;
-
-            if (currentTarget === 'chatgpt') {
-                document.querySelectorAll('.chatgpt').forEach(el => el.style.color = selectedColor);
-                document.querySelector('[data-target="chatgpt"]').style.backgroundColor = selectedColor;
-            } else if (currentTarget === 'user') {
-                document.querySelectorAll('.user').forEach(el => el.style.color = selectedColor);
-                document.querySelector('[data-target="user"]').style.backgroundColor = selectedColor;
-            }
-
-            colorPickerOverlay.style.display = 'none';
-        });
+        }
     </script>
 </body>
 </html>
