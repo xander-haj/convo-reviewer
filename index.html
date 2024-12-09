@@ -5,7 +5,116 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChatGPT Chat Parser</title>
     <style>
-        /* Existing styles remain unchanged */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            background-color: #121212;
+            z-index: 10;
+            padding: 20px 0;
+            border-bottom: 2px solid #00bcd4;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+            color: #00bcd4;
+        }
+
+        .file-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 10px 0;
+        }
+
+        input[type="file"], button {
+            padding: 10px 20px;
+            background-color: #1e1e1e;
+            border: 1px solid #00bcd4;
+            border-radius: 5px;
+            color: #ffffff;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button {
+            background-color: #00bcd4;
+            color: #121212;
+        }
+
+        button:disabled {
+            background-color: #3a3a3a;
+            color: #777;
+            cursor: not-allowed;
+        }
+
+        #progress {
+            display: none;
+            margin-top: 10px;
+            color: #00bcd4;
+        }
+
+        .output-container {
+            display: flex;
+            gap: 20px;
+            justify-content: space-between;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .output-box {
+            flex: 1;
+            resize: both;
+            overflow: auto;
+            background-color: #1e1e1e;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #00bcd4;
+            max-height: calc(100vh - 150px);
+        }
+
+        #chatgptOutput {
+            resize: horizontal;
+            direction: ltr;
+            text-align: left;
+        }
+
+        #userOutput {
+            resize: horizontal;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .output-box h2 {
+            margin-top: 0;
+            color: #00bcd4;
+        }
+
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .chatgpt {
+            background-color: #282828;
+            color: #00e676;
+        }
+
+        .user {
+            background-color: #3a3a3a;
+            color: #ff9800;
+        }
     </style>
 </head>
 <body>
@@ -28,77 +137,26 @@
     </div>
 
     <script>
-        // Functionality to parse files (unchanged)
+        document.getElementById('chatColorsButton').addEventListener('click', function () {
+            const colorPicker = document.createElement('input');
+            colorPicker.type = 'color';
+            colorPicker.style.display = 'none';
+            document.body.appendChild(colorPicker);
 
-        document.getElementById('chatColorsButton').addEventListener('click', function() {
-            const options = document.createElement('div');
-            options.style.position = 'fixed';
-            options.style.top = '50%';
-            options.style.left = '50%';
-            options.style.transform = 'translate(-50%, -50%)';
-            options.style.background = '#1e1e1e';
-            options.style.padding = '20px';
-            options.style.border = '2px solid #00bcd4';
-            options.style.borderRadius = '10px';
-            options.style.zIndex = '1000';
-            options.style.textAlign = 'center';
+            // Open color picker
+            colorPicker.click();
 
-            const chatGPTButton = document.createElement('button');
-            chatGPTButton.textContent = 'Change ChatGPT Text Color';
-            chatGPTButton.style.margin = '10px';
-            chatGPTButton.style.padding = '10px';
-            chatGPTButton.style.cursor = 'pointer';
+            colorPicker.addEventListener('input', (e) => {
+                const color = e.target.value;
+                const targetClass = confirm("Change ChatGPT's text color? Press Cancel to change User's text color.")
+                    ? '.chatgpt'
+                    : '.user';
 
-            const userButton = document.createElement('button');
-            userButton.textContent = 'Change User Text Color';
-            userButton.style.margin = '10px';
-            userButton.style.padding = '10px';
-            userButton.style.cursor = 'pointer';
-
-            const closeButton = document.createElement('button');
-            closeButton.textContent = 'Close';
-            closeButton.style.margin = '10px';
-            closeButton.style.padding = '10px';
-            closeButton.style.cursor = 'pointer';
-            closeButton.style.background = '#ff5252';
-
-            options.appendChild(chatGPTButton);
-            options.appendChild(userButton);
-            options.appendChild(closeButton);
-            document.body.appendChild(options);
-
-            function openColorPicker(callback) {
-                const colorPicker = document.createElement('input');
-                colorPicker.type = 'color';
-                colorPicker.style.display = 'none';
-                document.body.appendChild(colorPicker);
-
-                colorPicker.addEventListener('input', (e) => {
-                    callback(e.target.value);
-                });
-
-                colorPicker.addEventListener('change', () => {
-                    document.body.removeChild(colorPicker);
-                });
-
-                colorPicker.click();
-            }
-
-            chatGPTButton.addEventListener('click', () => {
-                openColorPicker((color) => {
-                    document.querySelectorAll('.chatgpt').forEach(el => el.style.color = color);
-                });
+                document.querySelectorAll(targetClass).forEach(el => el.style.color = color);
             });
 
-            userButton.addEventListener('click', () => {
-                openColorPicker((color) => {
-                    document.querySelectorAll('.user').forEach(el => el.style.color = color);
-                });
-            });
-
-            closeButton.addEventListener('click', () => {
-                document.body.removeChild(options);
-            });
+            // Remove color picker after selection
+            colorPicker.addEventListener('change', () => document.body.removeChild(colorPicker));
         });
     </script>
 </body>
