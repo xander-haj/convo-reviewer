@@ -89,8 +89,11 @@
         }
 
         .output-box h2 {
-            margin-top: 0;
+            margin: 0;
             color: #00bcd4;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .message {
@@ -163,12 +166,16 @@
     </header>
     <div class="output-container">
         <div class="output-box" id="chatgptOutput">
-            <h2>ChatGPT Replies</h2>
-            <button class="color-change-button" data-target="chatgpt">Change GPT Chat Color</button>
+            <h2>
+                ChatGPT Replies
+                <button class="color-change-button" data-target="chatgpt">Change GPT Chat Color</button>
+            </h2>
         </div>
         <div class="output-box" id="userOutput">
-            <h2>Your Replies</h2>
-            <button class="color-change-button" data-target="user">Change Your Chat Color</button>
+            <h2>
+                Your Replies
+                <button class="color-change-button" data-target="user">Change Your Chat Color</button>
+            </h2>
         </div>
     </div>
 
@@ -216,8 +223,16 @@
             const userContainer = document.getElementById('userOutput');
 
             // Clear previous content
-            chatGPTContainer.innerHTML = '<h2>ChatGPT Replies</h2>';
-            userContainer.innerHTML = '<h2>Your Replies</h2>';
+            chatGPTContainer.innerHTML = `
+                <h2>
+                    ChatGPT Replies
+                    <button class="color-change-button" data-target="chatgpt">Change GPT Chat Color</button>
+                </h2>`;
+            userContainer.innerHTML = `
+                <h2>
+                    Your Replies
+                    <button class="color-change-button" data-target="user">Change Your Chat Color</button>
+                </h2>`;
 
             const lines = uploadedFileContent.split('\n');
             let currentSpeaker = null;
@@ -259,11 +274,12 @@
         const acceptColorButton = document.getElementById('acceptColorButton');
         let currentTarget = null;
 
-        document.querySelectorAll('.color-change-button').forEach(button => {
-            button.addEventListener('click', function() {
-                currentTarget = this.dataset.target;
+        document.body.addEventListener('click', function(event) {
+            const button = event.target.closest('.color-change-button');
+            if (button) {
+                currentTarget = button.dataset.target;
                 colorPickerOverlay.style.display = 'flex';
-            });
+            }
         });
 
         acceptColorButton.addEventListener('click', function() {
