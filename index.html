@@ -237,12 +237,14 @@
             colorPicker.style.display = 'none';
             document.body.appendChild(colorPicker);
 
+            // Open color picker
             colorPicker.click();
 
-            colorPicker.addEventListener('input', (e) => {
+            // Listen for color change
+            colorPicker.addEventListener('change', (e) => {
                 const color = e.target.value;
 
-                // Prompt user to choose which text to update
+                // Prompt user to specify which text to update
                 const target = prompt("Enter 'chatgpt' to change ChatGPT text color or 'user' to change User text color:");
 
                 if (target === 'chatgpt') {
@@ -252,9 +254,10 @@
                 } else {
                     alert("Invalid choice. Please type 'chatgpt' or 'user'.");
                 }
-            });
 
-            colorPicker.addEventListener('change', () => document.body.removeChild(colorPicker));
+                // Remove the color picker from the DOM
+                document.body.removeChild(colorPicker);
+            });
         });
     </script>
 </body>
