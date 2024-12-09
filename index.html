@@ -183,6 +183,7 @@
     <script>
         let uploadedFileContent = "";
 
+        // Handle file input and enable parse button
         document.getElementById('fileInput').addEventListener('change', function(event) {
             const file = event.target.files[0];
             const parseButton = document.getElementById('parseButton');
@@ -204,28 +205,64 @@
             }
         });
 
+        // Handle file parsing and display messages
         document.getElementById('parseButton').addEventListener('click', function() {
             if (!uploadedFileContent) {
                 alert("No file content loaded.");
                 return;
             }
 
-            // Example processing logic
-            console.log("File content:", uploadedFileContent);
+            const chatGPTContainer = document.getElementById('chatgptOutput');
+            const userContainer = document.getElementById('userOutput');
+
+            // Clear previous content
+            chatGPTContainer.innerHTML = '<h2>ChatGPT Replies</h2>';
+            userContainer.innerHTML = '<h2>Your Replies</h2>';
+
+            const lines = uploadedFileContent.split('\n');
+            let currentSpeaker = null;
+            let currentMessage = '';
+
+            const flushMessage = () => {
+                if (currentMessage.trim()) {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = `message ${currentSpeaker}`;
+                    messageDiv.textContent = currentMessage.trim();
+                    if (currentSpeaker === 'chatgpt') {
+                        chatGPTContainer.appendChild(messageDiv);
+                    } else if (currentSpeaker === 'user') {
+                        userContainer.appendChild(messageDiv);
+                    }
+                }
+                currentMessage = '';
+            };
+
+            lines.forEach(line => {
+                line = line.trim();
+                if (line.startsWith('You said:')) {
+                    flushMessage();
+                    currentSpeaker = 'user';
+                } else if (line.startsWith('ChatGPT said:')) {
+                    flushMessage();
+                    currentSpeaker = 'chatgpt';
+                } else if (currentSpeaker) {
+                    currentMessage += (currentMessage ? '\n' : '') + line;
+                }
+            });
+
+            flushMessage(); // Flush the last message
         });
 
-        // Color Picker Logic
+        // Color picker logic
         const colorPickerOverlay = document.getElementById('colorPickerOverlay');
         const colorPicker = document.getElementById('colorPicker');
         const acceptColorButton = document.getElementById('acceptColorButton');
-
         let currentTarget = null;
 
         document.querySelectorAll('.color-change-button').forEach(button => {
             button.addEventListener('click', function() {
                 currentTarget = this.dataset.target;
                 colorPickerOverlay.style.display = 'flex';
-                colorPicker.value = this.style.backgroundColor || '#ffffff';
             });
         });
 
@@ -233,16 +270,13 @@
             const selectedColor = colorPicker.value;
 
             if (currentTarget === 'chatgpt') {
-                // Update ChatGPT Replies text and button color
                 document.querySelectorAll('.chatgpt').forEach(el => el.style.color = selectedColor);
                 document.querySelector('[data-target="chatgpt"]').style.backgroundColor = selectedColor;
             } else if (currentTarget === 'user') {
-                // Update Your Replies text and button color
                 document.querySelectorAll('.user').forEach(el => el.style.color = selectedColor);
                 document.querySelector('[data-target="user"]').style.backgroundColor = selectedColor;
             }
 
-            // Hide the color picker overlay
             colorPickerOverlay.style.display = 'none';
         });
     </script>
